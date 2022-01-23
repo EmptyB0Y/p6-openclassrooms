@@ -11,41 +11,41 @@ try {
 }*/
 const sauces = [
     {
-        "userId" : "",
-        "name" : "",
-        "manufacturer" : "",
-        "description" : "",
-        "mainPepper" : "",
-        "imageUrl" : "",
-        "heat" : 0,
-        "likes" : 0,
-        "dislikes" : 0,
+        "userId" : "5315438",
+        "name" : "testname1",
+        "manufacturer" : "testmanufacturer1",
+        "description" : "Testing 1",
+        "mainPepper" : "pepper",
+        "imageUrl" : "image.png",
+        "heat" : 1,
+        "likes" : 3,
+        "dislikes" : 5,
         "usersLiked" : [],
         "usersDisliked" : []
     },
     {
-        "userId" : "",
-        "name" : "",
-        "manufacturer" : "",
-        "description" : "",
-        "mainPepper" : "",
-        "imageUrl" : "",
-        "heat" : 0,
-        "likes" : 0,
-        "dislikes" : 0,
+        "userId" : "5431215",
+        "name" : "testname2",
+        "manufacturer" : "testmanufacturer2",
+        "description" : "Testing 2",
+        "mainPepper" : "pepper",
+        "imageUrl" : "image.png",
+        "heat" : 5,
+        "likes" : 2,
+        "dislikes" : 1,
         "usersLiked" : [],
         "usersDisliked" : []
     },
     {
-        "userId" : "",
-        "name" : "",
-        "manufacturer" : "",
-        "description" : "",
-        "mainPepper" : "",
-        "imageUrl" : "",
-        "heat" : 0,
-        "likes" : 0,
-        "dislikes" : 0,
+        "userId" : "5541618",
+        "name" : "testname3",
+        "manufacturer" : "testmanfacturer3",
+        "description" : "Testing 3",
+        "mainPepper" : "pepper",
+        "imageUrl" : "image.png",
+        "heat" : 2,
+        "likes" : 3,
+        "dislikes" : 1,
         "usersLiked" : [],
         "usersDisliked" : []
     }
@@ -66,7 +66,7 @@ const users = [
     }
 ];
 
-exports.showSauces = () =>{
+exports.showSauces = () => {
     return new Promise((resolve,reject)=>resolve(JSON.parse(JSON.stringify(sauces))));
 }
 
