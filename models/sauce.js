@@ -1,14 +1,5 @@
-/*const { Sequelize } = require('sequelize');
-const db = new Sequelize({
-    dialect: 'sqlite',
-    storage: '../database.sqlite'
-  });
-try {
-    await sequelize.authenticate();
-    console.log('Connection has been established successfully.');
-} catch (error) {
-    console.error('Unable to connect to the database:', error);
-}*/
+const mongoose = require('mongoose');
+
 const sauces = [
     {
         "userId" : "5315438",
@@ -39,7 +30,7 @@ const sauces = [
     {
         "userId" : "5541618",
         "name" : "testname3",
-        "manufacturer" : "testmanfacturer3",
+        "manufacturer" : "testmanufacturer3",
         "description" : "Testing 3",
         "mainPepper" : "pepper",
         "imageUrl" : "image.png",
@@ -48,21 +39,6 @@ const sauces = [
         "dislikes" : 1,
         "usersLiked" : [],
         "usersDisliked" : []
-    }
-];
-
-const users = [
-    {
-        "email" : "",
-        "password" : ""
-    },
-    {
-        "email" : "",
-        "password" : ""
-    },
-    {
-        "email" : "",
-        "password" : ""
     }
 ];
 
@@ -77,3 +53,12 @@ exports.findSauce = (id) => {
       )
     );
   }
+
+  const sauceSchema = mongoose.Schema({ 
+    sauce: { type: String, required: true },
+    image: { type: String, required: true },
+    usersLiked: { type: Number, required: false, default: 0 },
+    usersDisliked: { type: Number, required: false, default: 0 },
+  });
+  
+  module.exports = mongoose.model('sauce', sauceSchema);
