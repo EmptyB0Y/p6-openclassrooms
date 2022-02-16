@@ -1,5 +1,6 @@
 const Sauce = require('../models/sauce');
 const mongoose = require('mongoose');
+const auth = require('../middlewares/auth');
 
 exports.getAllSauces = (req,res) =>{
   mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
@@ -22,8 +23,23 @@ exports.getAllSauces = (req,res) =>{
   };
 
   exports.postSauce = (req, res) => {
-    if (!req.body.sauce || !req.body.image) {
+    console.log(res.locals.userId); 
+    if (!req.body.userId ||
+      !req.body.name || 
+      !req.body.imageUrl || 
+      !req.body.heat || 
+      !req.body.mainPepper || 
+      !req.body.manufacturer || 
+      !req.body.description ||
+      req.body.likes ||
+      req.body.dislikes ||
+      req.body.usersLiked ||
+      req.body.usersDisliked) {
       return res.status(400).send(new Error('Bad request!'));
+    }
+
+    if (res.locals.userId !== req.body.userId){
+      return res.status(401).json({message: "Unauthorized !"});
     }
 
     mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
@@ -47,6 +63,25 @@ exports.getAllSauces = (req,res) =>{
   };
 
   exports.editSauce = (req,res) => {
+    if (!req.body.userId ||
+      !req.body.name || 
+      !req.body.imageUrl || 
+      !req.body.heat || 
+      !req.body.mainPepper || 
+      !req.body.manufacturer || 
+      !req.body.description ||
+      req.body.likes ||
+      req.body.dislikes ||
+      req.body.usersLiked ||
+      req.body.usersDisliked) {
+      return res.status(400).send(new Error('Bad request!'));
+    }
+
+    if (res.locals.userId !== req.body.userId){
+      return res.status(401).json({message: "Unauthorized !"});
+    }
+
+    console.log(res.locals.userId);
     mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
@@ -59,6 +94,14 @@ exports.getAllSauces = (req,res) =>{
   };
 
   exports.deleteSauce = (req,res) => {
+    if (!req.body.userId) {
+      return res.status(400).send(new Error('Bad request!'));
+    }
+
+    if (res.locals.userId !== req.body.userId){
+      return res.status(401).json({message: "Unauthorized !"});
+    }
+
     mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
@@ -78,7 +121,28 @@ exports.getAllSauces = (req,res) =>{
       if(req.body.like && req.body.like == 1 || req.body.like == -1){
         Sauce.findOne({ _id: req.params.id })
         .then(sauce => {
-          sauce.usersLiked += req.body.like;
+          if(sauce.userId === res.locals.userId){
+            return res.status(401).json({message: "Unauthorized !"});
+          }
+          if(req.body.like == 1){
+            if(!sauce.usersLiked.includes(res.locals.userId)){
+              sauce.likes += 1;
+              sauce.usersLiked.push(res.locals.userId);
+            }
+            else{
+              return res.status(401).json({message: "Unauthorized !"});
+            }
+          }
+          else{
+            if(!sauce.usersLiked.includes(res.locals.userId)){
+              sauce.dislikes += 1;
+              sauce.usersDisliked.push(res.locals.userId);
+            }
+            else{
+              return res.status(401).json({message: "Unauthorized !"});
+            }
+          }
+          console.log(sauce);
           Sauce.updateOne({ _id: req.params.id }, { sauce, _id: req.params.id })
           .then(() => res.status(200).json({ message: 'Like ajouté !'}))
           .catch(() => res.status(400).json({ message: 'Erreur lors de l\'ajout du like !'}))

@@ -29,16 +29,16 @@ const sauces = [
     },
     {
         "userId" : "5541618",
-        "name" : "testname3",
-        "manufacturer" : "testmanufacturer3",
-        "description" : "Testing 3",
-        "mainPepper" : "pepper",
-        "imageUrl" : "image.png",
-        "heat" : 2,
-        "likes" : 3,
-        "dislikes" : 1,
-        "usersLiked" : [],
-        "usersDisliked" : []
+          "name" : "testname3",
+          "manufacturer" : "testmanufacturer3",
+          "description" : "Testing 3",
+          "mainPepper" : "pepper",
+          "imageUrl" : "image.png",
+          "heat" : 2,
+          "likes" : 3,
+          "dislikes" : 1,
+          "usersLiked" : [],
+          "usersDisliked" : []
     }
 ];
 
@@ -54,11 +54,18 @@ exports.findSauce = (id) => {
     );
   }
 
-  const sauceSchema = mongoose.Schema({ 
-    sauce: { type: String, required: true },
-    image: { type: String, required: true },
-    usersLiked: { type: Number, required: false, default: 0 },
-    usersDisliked: { type: Number, required: false, default: 0 },
+  const sauceSchema = mongoose.Schema({
+    userId: { type: String, required: true },
+    name: { type: String, required: true },
+    manufacturer: { type: String, required: true },
+    mainPepper: { type: String, required: true },
+    description: { type: String, required: true },
+    imageUrl: { type: String, required: true },
+    heat: { type: Number, required: true },
+    likes: { type: Number, required: false, default: 0 },
+    dislikes: { type: Number, required: false, default: 0 },
+    usersLiked: { type: Array, required: false, default: [] },
+    usersDisliked: { type: Array, required: false, default: [] },
   });
   
   module.exports = mongoose.model('sauce', sauceSchema);
