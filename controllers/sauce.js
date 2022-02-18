@@ -1,6 +1,8 @@
 const Sauce = require('../models/sauce');
 const mongoose = require('mongoose');
 const auth = require('../middlewares/auth');
+const multer = require('multer');
+const upload = multer({dest:'uploads/'}).single("demo_image");
 
 exports.getAllSauces = (req,res) =>{
   mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
@@ -118,7 +120,7 @@ exports.getAllSauces = (req,res) =>{
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
-      if(req.body.like && req.body.like == 1 || req.body.like == -1){
+      if(req.body.like && req.body.like <= 1 || req.body.like >= -1){
         Sauce.findOne({ _id: req.params.id })
         .then(sauce => {
           if(sauce.userId === res.locals.userId){
@@ -136,12 +138,15 @@ exports.getAllSauces = (req,res) =>{
               }
             }
             else{
+              return res.status(401).json({message: "Unauthorized !"});
+            }
+            /*else{
               sauce.likes -= 1;
               sauce.usersLiked.splice(sauce.usersLiked.indexOf(res.locals.userId));
-            }
+            }*/
           }
           //Dislike
-          else{
+          else if(req.body.like == -1){
             if(!sauce.usersDisliked.includes(res.locals.userId)){
               sauce.dislikes += 1;
               sauce.usersDisliked.push(res.locals.userId);
@@ -152,8 +157,25 @@ exports.getAllSauces = (req,res) =>{
               }
             }
             else{
+              return res.status(401).json({message: "Unauthorized !"});
+            }
+            /*else{
               sauce.dislikes -= 1;
               sauce.usersDisliked.splice(sauce.usersDisliked.indexOf(res.locals.userId));  
+            }*/
+          }
+          //Remove like or dislike
+          else if(req.body.like == 0){
+            if(sauce.usersDisliked.includes(res.locals.userId)){
+              sauce.dislikes -= 1;
+              sauce.usersDisliked.splice(sauce.usersDisliked.indexOf(res.locals.userId)); 
+            }
+            else if(sauce.usersLiked.includes(res.locals.userId)){
+              sauce.likes -= 1;
+              sauce.usersLiked.splice(sauce.usersLiked.indexOf(res.locals.userId));
+            }
+            else{
+              return res.status(401).json({message: "Unauthorized !"});
             }
           }
           let sauceLiked = {
