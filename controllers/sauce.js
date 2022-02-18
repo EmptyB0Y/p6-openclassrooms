@@ -124,30 +124,57 @@ exports.getAllSauces = (req,res) =>{
           if(sauce.userId === res.locals.userId){
             return res.status(401).json({message: "Unauthorized !"});
           }
+          //Like
           if(req.body.like == 1){
             if(!sauce.usersLiked.includes(res.locals.userId)){
               sauce.likes += 1;
               sauce.usersLiked.push(res.locals.userId);
+
+              if(sauce.usersDisliked.includes(res.locals.userId)){
+                sauce.dislikes -= 1;
+                sauce.usersDisliked.splice(sauce.usersDisliked.indexOf(res.locals.userId));
+              }
             }
             else{
-              return res.status(401).json({message: "Unauthorized !"});
+              sauce.likes -= 1;
+              sauce.usersLiked.splice(sauce.usersLiked.indexOf(res.locals.userId));
             }
           }
+          //Dislike
           else{
-            if(!sauce.usersLiked.includes(res.locals.userId)){
+            if(!sauce.usersDisliked.includes(res.locals.userId)){
               sauce.dislikes += 1;
               sauce.usersDisliked.push(res.locals.userId);
+
+              if(sauce.usersLiked.includes(res.locals.userId)){
+                sauce.likes -= 1;
+                sauce.usersLiked.splice(sauce.usersLiked.indexOf(res.locals.userId));
+              }
             }
             else{
-              return res.status(401).json({message: "Unauthorized !"});
+              sauce.dislikes -= 1;
+              sauce.usersDisliked.splice(sauce.usersDisliked.indexOf(res.locals.userId));  
             }
           }
-          console.log(sauce);
-          Sauce.updateOne({ _id: req.params.id }, { sauce, _id: req.params.id })
+          let sauceLiked = {
+              "userId" : sauce.userId,
+              "name" : sauce.name,
+              "manufacturer" : sauce.manufacturer,
+              "description" : sauce.description,
+              "mainPepper" : sauce.mainPepper,
+              "imageUrl" : sauce.imageUrl,
+              "heat" : sauce.heat,
+              "likes" : sauce.likes,
+              "dislikes" : sauce.dislikes,
+              "usersLiked" : sauce.usersLiked,
+              "usersDisliked" : sauce.usersDisliked
+        };
+        console.log(sauceLiked);
+        Sauce.updateOne({ _id: req.params.id }, { ...sauceLiked, _id: req.params.id })
           .then(() => res.status(200).json({ message: 'Like ajouté !'}))
-          .catch(() => res.status(400).json({ message: 'Erreur lors de l\'ajout du like !'}))
+          .catch(() => res.status(400).json({ message: 'Erreur lors de l\'ajout du like !'}));
         })
-        .catch(() => res.status(404).json({ message: "Objet non trouvé !" }));
+        .catch(() => res.status(404).json({ message: "Objet non trouvé  !" }));
       }
       else{
         console.log("bad request"); 
@@ -155,5 +182,4 @@ exports.getAllSauces = (req,res) =>{
       }
     })
     .catch(() => res.status(404).json({message: 'Impossible de se connecter à la base de donnée !'}));
-
   };
