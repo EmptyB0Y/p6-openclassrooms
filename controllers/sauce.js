@@ -1,8 +1,6 @@
 const Sauce = require('../models/sauce');
 const mongoose = require('mongoose');
 const auth = require('../middlewares/auth');
-const multer = require('multer');
-const upload = multer({dest:'uploads/'}).single("demo_image");
 
 exports.getAllSauces = (req,res) =>{
   mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
@@ -25,23 +23,30 @@ exports.getAllSauces = (req,res) =>{
   };
 
   exports.postSauce = (req, res) => {
-    console.log(res.locals.userId); 
-    if (!req.body.userId ||
-      !req.body.name || 
-      !req.body.imageUrl || 
-      !req.body.heat || 
-      !req.body.mainPepper || 
-      !req.body.manufacturer || 
-      !req.body.description ||
-      req.body.likes ||
-      req.body.dislikes ||
-      req.body.usersLiked ||
-      req.body.usersDisliked) {
+
+      /*sauce format : 
+      {"name":"...",
+      "manufacturer":"...",
+      "description":"...",
+      "mainPepper":"...",
+      "heat":<Number>}*/
+
+    if (!req.body.sauce) {
       return res.status(400).send(new Error('Bad request!'));
     }
 
     if (res.locals.userId !== req.body.userId){
       return res.status(401).json({message: "Unauthorized !"});
+    }
+
+    let sauceCreated = JSON.parse(req.body.sauce);
+
+    if(req.file){
+      sauceCreated.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+    }
+
+    if(sauceCreated.heat == isNaN){
+      return res.status(400).send(new Error('Bad request!'));
     }
 
     mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
@@ -51,44 +56,68 @@ exports.getAllSauces = (req,res) =>{
 
           console.log('Connexion à MongoDB réussie !')
 
-          const sauce = new Sauce({...req.body});
+          const sauce = new Sauce({ ...sauceCreated });
 
           sauce.save().then(() => {
             res.status(201).json({message: "Objet créé !"});
           })
-          .catch(() => res.status(400).json({message: "Erreur lors de la création de l'objet !"}));
+          .catch(() => res.status(500).json({message: "Erreur lors de la création de l'objet !"}));
         })
         .catch(() => {
           console.log('Connexion à MongoDB échouée !');
-          reject('Connexion à MongoDB échouée !');
+          res.status(500).json({message: "Connexion à MongoDB échouée !"})
       });
   };
 
   exports.editSauce = (req,res) => {
-    if (!req.body.userId ||
-      !req.body.name || 
-      !req.body.imageUrl || 
-      !req.body.heat || 
-      !req.body.mainPepper || 
-      !req.body.manufacturer || 
-      !req.body.description ||
-      req.body.likes ||
-      req.body.dislikes ||
-      req.body.usersLiked ||
-      req.body.usersDisliked) {
-      return res.status(400).send(new Error('Bad request!'));
+
+    let ok = true;
+    if ((req.body.name &&  
+      req.body.heat && 
+      req.body.mainPepper && 
+      req.body.manufacturer && 
+      req.body.description &&
+      !req.body.likes &&
+      !req.body.dislikes &&
+      !req.body.usersLiked &&
+      !req.body.usersDisliked) || req.body.sauce) {
+      ok = true;
+    }
+    else{
+      ok = false;
+    }
+
+    if(!ok){
+    return res.status(400).send(new Error('Bad request!'));
     }
 
     if (res.locals.userId !== req.body.userId){
       return res.status(401).json({message: "Unauthorized !"});
     }
+    
+    let sauceModified;
+    if(req.body.sauce){
+      /*sauce format : 
+      {"name":"...",
+      "manufacturer":"...",
+      "description":"...",
+      "mainPepper":"...",
+      "heat":<Number>}*/
+      
+      sauceModified = JSON.parse(req.body.sauce);
+    }
+    else{
+      sauceModified = { ...req.body};
+    }
+    if(req.file){
+      sauceModified.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+    }
 
-    console.log(res.locals.userId);
     mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
-      Sauce.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id })
+      Sauce.updateOne({ _id: req.params.id }, { ...sauceModified, _id: req.params.id })
       .then(() => res.status(200).json({ message: 'Objet modifié !'}))
       .catch(error => res.status(400).json({ error }));
     })
