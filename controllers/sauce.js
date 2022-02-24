@@ -1,6 +1,22 @@
 const Sauce = require('../models/sauce');
 const mongoose = require('mongoose');
 const auth = require('../middlewares/auth');
+const fs = require('fs')
+
+pathMaker = (url) =>{
+  let path = "";
+  let count = 0;
+  for(let i = 0;i < url.length;i++){
+    if(count == 3){
+      path += url.charAt(i);
+    }
+    if(url.charAt(i) == '/'){
+      count++;
+    }
+  }
+  console.log(path);
+  return path;
+}
 
 exports.getAllSauces = (req,res) =>{
   mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
@@ -54,17 +70,36 @@ exports.getAllSauces = (req,res) =>{
     useUnifiedTopology: true })
         .then(() => {
 
-          console.log('Connexion à MongoDB réussie !')
-
           const sauce = new Sauce({ ...sauceCreated });
 
           sauce.save().then(() => {
             res.status(201).json({message: "Objet créé !"});
           })
-          .catch(() => res.status(500).json({message: "Erreur lors de la création de l'objet !"}));
+          .catch(() => {
+
+            if(req.file){
+              if(sauceCreated.imageUrl !== "noimage"){
+                fs.unlink('../back/images/' + sauceCreated.imageUrl.split('/images/')[1], (err) => {
+                  if (err) {
+                    console.error(err)
+                  }
+                })
+              }
+            }
+            res.status(500).json({message: "Erreur lors de la création de l'objet !"})
+        });
         })
         .catch(() => {
-          console.log('Connexion à MongoDB échouée !');
+
+          if(req.file){
+            if(sauceCreated.imageUrl !== "noimage"){
+              fs.unlink('../back/images/' + sauceCreated.imageUrl.split('/images/')[1], (err) => {
+                if (err) {
+                  console.error(err)
+                }
+              })
+            }
+          }
           res.status(500).json({message: "Connexion à MongoDB échouée !"})
       });
   };
@@ -117,11 +152,46 @@ exports.getAllSauces = (req,res) =>{
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
+      if(req.file){
+        Sauce.findOne({_id : req.params.id})
+        .then(sauce => {
+          if(sauce.imageUrl !== "noimage"){
+            fs.unlink('../back/images/' + sauce.imageUrl.split('/images/')[1], (err) => {
+              if (err) {
+                console.error(err)
+              }
+            })
+          }
+        })
+        .catch(error => res.status(404).json({ error }));
+      }
       Sauce.updateOne({ _id: req.params.id }, { ...sauceModified, _id: req.params.id })
       .then(() => res.status(200).json({ message: 'Objet modifié !'}))
-      .catch(error => res.status(400).json({ error }));
+      .catch(error => {
+        if(req.file){
+          if(sauceModified.imageUrl !== "noimage"){
+            fs.unlink('../back/images/' + sauceModified.imageUrl.split('/images/')[1], (err) => {
+              if (err) {
+                console.error(err)
+              }
+            })
+          }
+        }
+        res.status(400).json({ error })
+      });
     })
-    .catch(() => res.status(404).json({message: 'Impossible de se connecter à la base de donnée !'}));
+    .catch(() => {
+      if(req.file){
+        if(sauceModified.imageUrl !== "noimage"){
+          fs.unlink('../back/images/' + sauceModified.imageUrl.split('/images/')[1], (err) => {
+            if (err) {
+              console.error(err)
+            }
+          })
+        }
+      }
+      res.status(404).json({message: 'Impossible de se connecter à la base de donnée !'})
+    });
   };
 
   exports.deleteSauce = (req,res) => {
@@ -137,9 +207,27 @@ exports.getAllSauces = (req,res) =>{
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
-      Sauce.deleteOne({ _id: req.params.id })
-      .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
-      .catch(error => res.status(400).json({ error }));
+      Sauce.findOne({ _id: req.params.id })
+        .then(sauce => {
+          console.log(sauce);
+          console.log(sauce.imageUrl);
+
+          if(sauce.imageUrl !== "noimage"){
+            fs.unlink('../back/images/' + sauce.imageUrl.split('/images/')[1], (err) => {
+              if (err) {
+                console.error(err)
+              }
+            })
+          }
+          Sauce.deleteOne({ _id: req.params.id })
+          .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
+          .catch(error => res.status(400).json({ error }));
+          
+        })
+        .catch(error => {
+          console.log(error);
+          return res.status(404).json({ message: "Objet non trouvé  !" });
+        });
     })
     .catch(() => res.status(404).json({message: 'Impossible de se connecter à la base de donnée !'}));
   };
