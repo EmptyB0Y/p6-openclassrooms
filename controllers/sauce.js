@@ -48,14 +48,18 @@ exports.getAllSauces = (req,res) =>{
       "heat":<Number>}*/
 
     if (!req.body.sauce) {
-      return res.status(400).send(new Error('Bad request!'));
-    }
-
-    if (res.locals.userId !== req.body.userId){
-      return res.status(401).json({message: "Unauthorized !"});
+      return res.status(400).send(
+        `sauce : 
+          {"name":String,
+          "manufacturer":String,
+          "description":String,
+          "mainPepper":String,
+          "heat":Int}`
+        );
     }
 
     let sauceCreated = JSON.parse(req.body.sauce);
+    sauceCreated.userId = req.body.userId;
 
     if(req.file){
       sauceCreated.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
@@ -106,8 +110,7 @@ exports.getAllSauces = (req,res) =>{
 
   exports.editSauce = (req,res) => {
 
-    let ok = true;
-    if ((req.body.name &&  
+    if (!(req.body.name &&  
       req.body.heat && 
       req.body.mainPepper && 
       req.body.manufacturer && 
@@ -115,19 +118,15 @@ exports.getAllSauces = (req,res) =>{
       !req.body.likes &&
       !req.body.dislikes &&
       !req.body.usersLiked &&
-      !req.body.usersDisliked) || req.body.sauce) {
-      ok = true;
-    }
-    else{
-      ok = false;
-    }
+      !req.body.usersDisliked) && !req.body.sauce) {
 
-    if(!ok){
-    return res.status(400).send(new Error('Bad request!'));
-    }
-
-    if (res.locals.userId !== req.body.userId){
-      return res.status(401).json({message: "Unauthorized !"});
+      return res.status(400).send(
+      `sauce : {"name":String,
+      "manufacturer":String,
+      "description":String,
+      "mainPepper":String,
+      "heat":Int}`
+      );
     }
     
     let sauceModified;
@@ -140,6 +139,7 @@ exports.getAllSauces = (req,res) =>{
       "heat":<Number>}*/
       
       sauceModified = JSON.parse(req.body.sauce);
+      sauceModified.userId = req.body.userId;
     }
     else{
       sauceModified = { ...req.body};
@@ -152,9 +152,14 @@ exports.getAllSauces = (req,res) =>{
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
-      if(req.file){
-        Sauce.findOne({_id : req.params.id})
-        .then(sauce => {
+      Sauce.findOne({_id : req.params.id})
+      .then(sauce => {
+
+        if (res.locals.userId !== sauce.userId){
+          return res.status(401).json({message: "Unauthorized !"});
+        }
+
+        if(req.file){
           if(sauce.imageUrl !== "noimage"){
             fs.unlink('../back/images/' + sauce.imageUrl.split('/images/')[1], (err) => {
               if (err) {
@@ -162,23 +167,24 @@ exports.getAllSauces = (req,res) =>{
               }
             })
           }
-        })
-        .catch(error => res.status(404).json({ error }));
-      }
-      Sauce.updateOne({ _id: req.params.id }, { ...sauceModified, _id: req.params.id })
-      .then(() => res.status(200).json({ message: 'Objet modifié !'}))
-      .catch(error => {
-        if(req.file){
-          if(sauceModified.imageUrl !== "noimage"){
-            fs.unlink('../back/images/' + sauceModified.imageUrl.split('/images/')[1], (err) => {
-              if (err) {
-                console.error(err)
-              }
-            })
-          }
         }
-        res.status(400).json({ error })
-      });
+      
+        Sauce.updateOne({ _id: req.params.id }, { ...sauceModified, _id: req.params.id })
+        .then(() => res.status(200).json({ message: 'Objet modifié !'}))
+        .catch(error => {
+          if(req.file){
+            if(sauceModified.imageUrl !== "noimage"){
+              fs.unlink('../back/images/' + sauceModified.imageUrl.split('/images/')[1], (err) => {
+                if (err) {
+                  console.error(err)
+                }
+              })
+            }
+          }
+          res.status(400).json({ error })
+        });
+      })
+      .catch(error => res.status(404).json({ error }));
     })
     .catch(() => {
       if(req.file){
@@ -190,7 +196,7 @@ exports.getAllSauces = (req,res) =>{
           })
         }
       }
-      res.status(404).json({message: 'Impossible de se connecter à la base de donnée !'})
+      res.status(500).json({message: "Connexion à MongoDB échouée !"})
     });
   };
 
@@ -199,18 +205,16 @@ exports.getAllSauces = (req,res) =>{
       return res.status(400).send(new Error('Bad request!'));
     }
 
-    if (res.locals.userId !== req.body.userId){
-      return res.status(401).json({message: "Unauthorized !"});
-    }
-
     mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
       Sauce.findOne({ _id: req.params.id })
         .then(sauce => {
-          console.log(sauce);
-          console.log(sauce.imageUrl);
+
+          if (res.locals.userId !== sauce.userId){
+            return res.status(401).json({message: "Unauthorized !"});
+          }
 
           if(sauce.imageUrl !== "noimage"){
             fs.unlink('../back/images/' + sauce.imageUrl.split('/images/')[1], (err) => {
@@ -229,7 +233,7 @@ exports.getAllSauces = (req,res) =>{
           return res.status(404).json({ message: "Objet non trouvé  !" });
         });
     })
-    .catch(() => res.status(404).json({message: 'Impossible de se connecter à la base de donnée !'}));
+    .catch(() => res.status(500).json({message: "Connexion à MongoDB échouée !"}));
   };
 
   exports.postLike = (req,res) => {
@@ -320,5 +324,5 @@ exports.getAllSauces = (req,res) =>{
         return res.status(400).send(new Error('Bad request!'));
       }
     })
-    .catch(() => res.status(404).json({message: 'Impossible de se connecter à la base de donnée !'}));
+    .catch(() => res.status(500).json({message: "Connexion à MongoDB échouée !"}));
   };

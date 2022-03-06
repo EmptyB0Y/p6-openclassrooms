@@ -62,6 +62,7 @@ exports.login = (req,res) =>{
                     email: req.body.email,
                     password: hash
                 });
+                console.log(hash);
                 user.save()
                 .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
                 .catch(() => res.status(400).json({ message: 'Erreur lors de la création de l\'utilisateur !' }));
@@ -73,4 +74,20 @@ exports.login = (req,res) =>{
         else{
             res.status(400).json({ message:"Error !"});
           }
+};
+
+exports.delete = (req, res) =>{
+ 
+  mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/Groupomania?retryWrites=true&w=majority',
+  { useNewUrlParser: true, 
+  useUnifiedTopology: true })
+  .then(() =>{
+      User.deleteOne({_id : req.body.userId})
+      .then(() => res.status(200).json({ message: 'Utilisateur supprimé !'}))
+      .catch(error => res.status(400).json({ error }));
+  })
+  .catch(error => {
+    console.log(error);
+    return res.status(404).json({ message: "Impossible de se connecter à la base de donnée !" });
+  });
 };
