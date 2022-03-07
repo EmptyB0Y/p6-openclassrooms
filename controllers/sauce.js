@@ -1,7 +1,8 @@
 const Sauce = require('../models/sauce');
 const mongoose = require('mongoose');
 const auth = require('../middlewares/auth');
-const fs = require('fs')
+const fs = require('fs');
+const { error } = require('console');
 
 exports.getAllSauces = (req,res) =>{
   mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
@@ -9,9 +10,9 @@ exports.getAllSauces = (req,res) =>{
   useUnifiedTopology: true }).then(() =>{
   Sauce.find()
     .then(sauces => res.status(200).json(sauces))
-    .catch(error => res.status(400).json({ error }));
+    .catch(() => error => res.status(400).json({ error }));
   })
-  .catch(res.status(500).json({message: "Connexion à MongoDB échouée !"}));
+  .catch(() => res.status(500).json({message: "Connexion à MongoDB échouée !"}));
   };
 
   exports.getOneSauce = (req, res) => {
@@ -21,7 +22,7 @@ exports.getAllSauces = (req,res) =>{
     Sauce.findOne({ _id: req.params.id })
     .then(sauce => res.status(200).json(sauce))
     .catch(error => res.status(404).json({ error }));
-    }).catch(res.status(500).json({message: "Connexion à MongoDB échouée !"}));
+    }).catch(() => res.status(500).json({message: "Connexion à MongoDB échouée !"}));
 
   };
 
@@ -36,12 +37,11 @@ exports.getAllSauces = (req,res) =>{
 
     if (!req.body.sauce) {
       return res.status(400).send(
-        `sauce : 
-          {"name":String,
-          "manufacturer":String,
-          "description":String,
-          "mainPepper":String,
-          "heat":Int}`
+        `sauce : {"name":String,
+        "manufacturer":String,
+        "description":String,
+        "mainPepper":String,
+        "heat":Int}`
         );
     }
 
@@ -66,8 +66,8 @@ exports.getAllSauces = (req,res) =>{
 
           const sauce = new Sauce({ ...sauceCreated });
 
-          sauce.save().then(() => {
-            res.status(201).json({message: "Objet créé !"});
+          sauce.save().then((sauceSaved) => {
+            res.status(201).json({message: sauceSaved});
           })
           .catch(() => {
 
