@@ -66,8 +66,8 @@ exports.getAllSauces = (req,res) =>{
 
           const sauce = new Sauce({ ...sauceCreated });
 
-          sauce.save().then((sauceSaved) => {
-            res.status(201).json({message: sauceSaved});
+          sauce.save().then(() => {
+            res.status(201).json({message: sauceCreated});
           })
           .catch(() => {
 
@@ -160,7 +160,7 @@ exports.getAllSauces = (req,res) =>{
         }
       
         Sauce.updateOne({ _id: req.params.id }, { ...sauceModified, _id: req.params.id })
-        .then(() => res.status(200).json({ message: 'Objet modifié !'}))
+        .then(() => res.status(200).json({ message: sauceModified}))
         .catch(error => {
           if(req.file){
             if(sauceModified.imageUrl !== "noimage"){
