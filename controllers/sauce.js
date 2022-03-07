@@ -3,21 +3,6 @@ const mongoose = require('mongoose');
 const auth = require('../middlewares/auth');
 const fs = require('fs')
 
-pathMaker = (url) =>{
-  let path = "";
-  let count = 0;
-  for(let i = 0;i < url.length;i++){
-    if(count == 3){
-      path += url.charAt(i);
-    }
-    if(url.charAt(i) == '/'){
-      count++;
-    }
-  }
-  console.log(path);
-  return path;
-}
-
 exports.getAllSauces = (req,res) =>{
   mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
   { useNewUrlParser: true,
@@ -25,7 +10,8 @@ exports.getAllSauces = (req,res) =>{
   Sauce.find()
     .then(sauces => res.status(200).json(sauces))
     .catch(error => res.status(400).json({ error }));
-  });
+  })
+  .catch(res.status(500).json({message: "Connexion à MongoDB échouée !"}));
   };
 
   exports.getOneSauce = (req, res) => {
@@ -35,7 +21,8 @@ exports.getAllSauces = (req,res) =>{
     Sauce.findOne({ _id: req.params.id })
     .then(sauce => res.status(200).json(sauce))
     .catch(error => res.status(404).json({ error }));
-    });
+    }).catch(res.status(500).json({message: "Connexion à MongoDB échouée !"}));
+
   };
 
   exports.postSauce = (req, res) => {
@@ -59,7 +46,10 @@ exports.getAllSauces = (req,res) =>{
     }
 
     let sauceCreated = JSON.parse(req.body.sauce);
-    sauceCreated.userId = req.body.userId;
+
+    if(sauceCreated.userId !== res.locals.userId){
+      return res.status(401).send(new Error('Unauthorized !'));
+    }
 
     if(req.file){
       sauceCreated.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
@@ -156,7 +146,7 @@ exports.getAllSauces = (req,res) =>{
       .then(sauce => {
 
         if (res.locals.userId !== sauce.userId){
-          return res.status(401).json({message: "Unauthorized !"});
+          return res.status(401).send(new Error('Unauthorized !'));
         }
 
         if(req.file){
@@ -201,9 +191,6 @@ exports.getAllSauces = (req,res) =>{
   };
 
   exports.deleteSauce = (req,res) => {
-    if (!req.body.userId) {
-      return res.status(400).send(new Error('Bad request!'));
-    }
 
     mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
     { useNewUrlParser: true, 
@@ -213,7 +200,7 @@ exports.getAllSauces = (req,res) =>{
         .then(sauce => {
 
           if (res.locals.userId !== sauce.userId){
-            return res.status(401).json({message: "Unauthorized !"});
+            return res.status(401).send(new Error('Unauthorized !'));
           }
 
           if(sauce.imageUrl !== "noimage"){
@@ -224,7 +211,7 @@ exports.getAllSauces = (req,res) =>{
             })
           }
           Sauce.deleteOne({ _id: req.params.id })
-          .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
+          .then(() => res.status(200).json({ message: "Objet supprimé !"}))
           .catch(error => res.status(400).json({ error }));
           
         })
@@ -244,9 +231,10 @@ exports.getAllSauces = (req,res) =>{
       if(req.body.like && req.body.like <= 1 || req.body.like >= -1){
         Sauce.findOne({ _id: req.params.id })
         .then(sauce => {
-          if(sauce.userId === res.locals.userId){
-            return res.status(401).json({message: "Unauthorized !"});
-          }
+          //Suggestion : Un utilisateur ne peut pas liker ou disliker sa propre sauce
+          /*if(sauce.userId === res.locals.userId){
+            return res.status(401).send(new Error('Unauthorized !'));
+          }*/
           //Like
           if(req.body.like == 1){
             if(!sauce.usersLiked.includes(res.locals.userId)){
@@ -259,7 +247,7 @@ exports.getAllSauces = (req,res) =>{
               }
             }
             else{
-              return res.status(401).json({message: "Unauthorized !"});
+              return res.status(401).send(new Error('Unauthorized !'));
             }
             /*else{
               sauce.likes -= 1;
@@ -278,7 +266,7 @@ exports.getAllSauces = (req,res) =>{
               }
             }
             else{
-              return res.status(401).json({message: "Unauthorized !"});
+              return res.status(401).send(new Error('Unauthorized !'));
             }
             /*else{
               sauce.dislikes -= 1;
@@ -296,7 +284,7 @@ exports.getAllSauces = (req,res) =>{
               sauce.usersLiked.splice(sauce.usersLiked.indexOf(res.locals.userId));
             }
             else{
-              return res.status(401).json({message: "Unauthorized !"});
+              return res.status(401).send(new Error('Unauthorized !'));
             }
           }
           let sauceLiked = {

@@ -37,7 +37,8 @@ exports.login = (req,res) =>{
             })
             .catch(error => res.status(500).json({ error }));
         })
-    }).catch(error => res.status(500).json({ error }));
+    })
+    .catch(res.status(500).json({message: "Connexion à MongoDB échouée !"}));
   }
 };
 
@@ -45,35 +46,27 @@ exports.login = (req,res) =>{
     if (!req.body.email || !req.body.password) {
         return res.status(400).send(new Error('Bad request!'));
       }
-        count = 0;
-        for(let i in req.body){
-          count +=1;
-        }
-    
-        if(count == 2){
-            mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
-            { useNewUrlParser: true, 
-            useUnifiedTopology: true })
-            .then(() =>{
-                //Utilisation de Bcrypt pour hasher le mot de passe
-                bcrypt.hash(req.body.password, 10)
-                .then(hash => {
-                const user = new User({
-                    email: req.body.email,
-                    password: hash
-                });
-                console.log(hash);
-                user.save()
-                .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
-                .catch(() => res.status(400).json({ message: 'Erreur lors de la création de l\'utilisateur !' }));
-                })
-                .catch(() => res.status(500).json({ message: 'Erreur lors du hashage du mot de passe !' }));
-                })
-            .catch(() => res.status(404).json({message: 'Impossible de se connecter à la base de donnée !'}));
-        }
-        else{
-            res.status(400).json({ message:"Error !"});
-          }
+
+    mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
+    { useNewUrlParser: true, 
+    useUnifiedTopology: true })
+    .then(() =>{
+        //Utilisation de Bcrypt pour hasher le mot de passe
+        bcrypt.hash(req.body.password, 10)
+        .then(hash => {
+        const user = new User({
+            email: req.body.email,
+            password: hash
+        });
+        console.log(hash);
+        user.save()
+        .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
+        .catch(() => res.status(400).json({ message: 'Erreur lors de la création de l\'utilisateur !' }));
+        })
+        .catch(() => res.status(500).json({ message: 'Erreur lors du hashage du mot de passe !' }));
+    })
+    .catch(res.status(500).json({message: "Connexion à MongoDB échouée !"}));
+              
 };
 
 exports.delete = (req, res) =>{
@@ -86,8 +79,6 @@ exports.delete = (req, res) =>{
       .then(() => res.status(200).json({ message: 'Utilisateur supprimé !'}))
       .catch(error => res.status(400).json({ error }));
   })
-  .catch(error => {
-    console.log(error);
-    return res.status(404).json({ message: "Impossible de se connecter à la base de donnée !" });
-  });
+  .catch(res.status(500).json({message: "Connexion à MongoDB échouée !"}));
+
 };
