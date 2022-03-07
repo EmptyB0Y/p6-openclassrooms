@@ -300,7 +300,7 @@ exports.getAllSauces = (req,res) =>{
               "usersLiked" : sauce.usersLiked,
               "usersDisliked" : sauce.usersDisliked
         };
-        console.log(sauceLiked);
+
         Sauce.updateOne({ _id: req.params.id }, { ...sauceLiked, _id: req.params.id })
           .then(() => res.status(200).json({ message: 'Like ajouté !'}))
           .catch(() => res.status(400).json({ message: 'Erreur lors de l\'ajout du like !'}));
@@ -308,7 +308,6 @@ exports.getAllSauces = (req,res) =>{
         .catch(() => res.status(404).json({ message: "Objet non trouvé  !" }));
       }
       else{
-        console.log("bad request"); 
         return res.status(400).send(new Error('Bad request!'));
       }
     })
