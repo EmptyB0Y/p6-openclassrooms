@@ -2,10 +2,10 @@ const Sauce = require('../models/sauce');
 const mongoose = require('mongoose');
 const auth = require('../middlewares/auth');
 const fs = require('fs');
-const { error } = require('console');
 
 exports.getAllSauces = (req,res) =>{
-  mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
+  console.log(process.env.DBAUTH);
+  mongoose.connect(process.env.DBAUTH,
   { useNewUrlParser: true,
   useUnifiedTopology: true }).then(() =>{
   Sauce.find()
@@ -16,7 +16,7 @@ exports.getAllSauces = (req,res) =>{
   };
 
   exports.getOneSauce = (req, res) => {
-    mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
+    mongoose.connect(process.env.DBAUTH,
     { useNewUrlParser: true,
     useUnifiedTopology: true }).then(() =>{
     Sauce.findOne({ _id: req.params.id })
@@ -59,7 +59,7 @@ exports.getAllSauces = (req,res) =>{
       return res.status(400).send(new Error('Bad request!'));
     }
 
-    mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
+    mongoose.connect(process.env.DBAUTH,
     { useNewUrlParser: true,
     useUnifiedTopology: true })
         .then(() => {
@@ -138,7 +138,7 @@ exports.getAllSauces = (req,res) =>{
       sauceModified.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
     }
 
-    mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
+    mongoose.connect(process.env.DBAUTH,
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
@@ -192,7 +192,7 @@ exports.getAllSauces = (req,res) =>{
 
   exports.deleteSauce = (req,res) => {
 
-    mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
+    mongoose.connect(process.env.DBAUTH,
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
@@ -224,7 +224,7 @@ exports.getAllSauces = (req,res) =>{
   };
 
   exports.postLike = (req,res) => {
-    mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
+    mongoose.connect(process.env.DBAUTH,
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{

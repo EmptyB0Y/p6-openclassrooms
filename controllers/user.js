@@ -8,7 +8,7 @@ exports.login = (req,res) =>{
     return res.status(400).send(new Error('Bad request!'));
   }
   
-  mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
+  mongoose.connect(process.env.DBAUTH,
   { useNewUrlParser: true,
   useUnifiedTopology: true }).then(() =>{
     User.findOne({ email: req.body.email })
@@ -38,7 +38,7 @@ exports.login = (req,res) =>{
         return res.status(400).send(new Error('Bad request!'));
       }
 
-    mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/test?retryWrites=true&w=majority',
+    mongoose.connect(process.env.DBAUTH,
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
@@ -61,7 +61,7 @@ exports.login = (req,res) =>{
 
 exports.delete = (req, res) =>{
  
-  mongoose.connect('mongodb+srv://user0:p4ssw0rd@cluster0.ukoxa.mongodb.net/Groupomania?retryWrites=true&w=majority',
+  mongoose.connect(process.env.DBAUTH,
   { useNewUrlParser: true, 
   useUnifiedTopology: true })
   .then(() =>{
