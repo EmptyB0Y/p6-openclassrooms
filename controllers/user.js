@@ -3,12 +3,17 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+getAuth = () =>{
+  const AUTH = "mongodb+srv://"+String(process.env.DB_USERNAME)+":"+String(process.env.DB_USERPASS)+"@"+String(process.env.DB_CLUSTERNAME)+".ukoxa.mongodb.net/"+String(process.env.DB_NAME)+"?retryWrites=true&w=majority";
+  return AUTH;
+}
+
 exports.login = (req,res) =>{
   if (!req.body.email || !req.body.password) {
     return res.status(400).send(new Error('Bad request!'));
   }
   
-  mongoose.connect(process.env.DBAUTH,
+  mongoose.connect(getAuth(),
   { useNewUrlParser: true,
   useUnifiedTopology: true }).then(() =>{
     User.findOne({ email: req.body.email })
@@ -38,7 +43,7 @@ exports.login = (req,res) =>{
         return res.status(400).send(new Error('Bad request!'));
       }
 
-    mongoose.connect(process.env.DBAUTH,
+    mongoose.connect(getAuth(),
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
@@ -61,7 +66,7 @@ exports.login = (req,res) =>{
 
 exports.delete = (req, res) =>{
  
-  mongoose.connect(process.env.DBAUTH,
+  mongoose.connect(getAuth(),
   { useNewUrlParser: true, 
   useUnifiedTopology: true })
   .then(() =>{

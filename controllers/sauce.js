@@ -3,9 +3,14 @@ const mongoose = require('mongoose');
 const auth = require('../middlewares/auth');
 const fs = require('fs');
 
+getAuth = () =>{
+  const AUTH = "mongodb+srv://"+String(process.env.DB_USERNAME)+":"+String(process.env.DB_USERPASS)+"@"+String(process.env.DB_CLUSTERNAME)+".ukoxa.mongodb.net/"+String(process.env.DB_NAME)+"?retryWrites=true&w=majority";
+  return AUTH;
+}
+
 exports.getAllSauces = (req,res) =>{
-  console.log(process.env.DBAUTH);
-  mongoose.connect(process.env.DBAUTH,
+  
+  mongoose.connect(getAuth(),
   { useNewUrlParser: true,
   useUnifiedTopology: true }).then(() =>{
   Sauce.find()
@@ -16,7 +21,7 @@ exports.getAllSauces = (req,res) =>{
   };
 
   exports.getOneSauce = (req, res) => {
-    mongoose.connect(process.env.DBAUTH,
+    mongoose.connect(getAuth(),
     { useNewUrlParser: true,
     useUnifiedTopology: true }).then(() =>{
     Sauce.findOne({ _id: req.params.id })
@@ -37,7 +42,8 @@ exports.getAllSauces = (req,res) =>{
 
     if (!req.body.sauce) {
       return res.status(400).send(
-        `sauce : {"name":String,
+        `sauce : {"userId":String,
+        "name":String,
         "manufacturer":String,
         "description":String,
         "mainPepper":String,
@@ -59,7 +65,7 @@ exports.getAllSauces = (req,res) =>{
       return res.status(400).send(new Error('Bad request!'));
     }
 
-    mongoose.connect(process.env.DBAUTH,
+    mongoose.connect(getAuth(),
     { useNewUrlParser: true,
     useUnifiedTopology: true })
         .then(() => {
@@ -138,7 +144,7 @@ exports.getAllSauces = (req,res) =>{
       sauceModified.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
     }
 
-    mongoose.connect(process.env.DBAUTH,
+    mongoose.connect(getAuth(),
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
@@ -192,7 +198,7 @@ exports.getAllSauces = (req,res) =>{
 
   exports.deleteSauce = (req,res) => {
 
-    mongoose.connect(process.env.DBAUTH,
+    mongoose.connect(getAuth(),
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
@@ -224,7 +230,10 @@ exports.getAllSauces = (req,res) =>{
   };
 
   exports.postLike = (req,res) => {
-    mongoose.connect(process.env.DBAUTH,
+    if(!req.body.like){
+      return res.status(400).send(new Error('Bad request!'));
+    }
+    mongoose.connect(getAuth(),
     { useNewUrlParser: true, 
     useUnifiedTopology: true })
     .then(() =>{
