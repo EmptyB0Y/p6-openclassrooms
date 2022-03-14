@@ -4,12 +4,11 @@ const auth = require('../middlewares/auth');
 const fs = require('fs');
 
 getAuth = () =>{
-  const AUTH = "mongodb+srv://"+String(process.env.DB_USERNAME)+":"+String(process.env.DB_USERPASS)+"@"+String(process.env.DB_CLUSTERNAME)+".ukoxa.mongodb.net/"+String(process.env.DB_NAME)+"?retryWrites=true&w=majority";
-  return AUTH;
+  return "mongodb+srv://"+String(process.env.DB_USERNAME)+":"+String(process.env.DB_USERPASS)+"@"+String(process.env.DB_CLUSTERNAME)+".ukoxa.mongodb.net/"+String(process.env.DB_NAME)+"?retryWrites=true&w=majority";
 }
 
 exports.getAllSauces = (req,res) =>{
-  
+
   mongoose.connect(getAuth(),
   { useNewUrlParser: true,
   useUnifiedTopology: true }).then(() =>{
@@ -75,7 +74,7 @@ exports.getAllSauces = (req,res) =>{
           sauce.save().then(() => {
             res.status(201).json({message: sauceCreated});
           })
-          .catch(() => {
+          .catch((e) => {
 
             if(req.file){
               if(sauceCreated.imageUrl !== "noimage"){
@@ -86,10 +85,10 @@ exports.getAllSauces = (req,res) =>{
                 })
               }
             }
-            res.status(500).json({message: "Erreur lors de la création de l'objet !"})
+            res.status(500).json({message: "Erreur lors de la création de l'objet !", error: e})
         });
         })
-        .catch(() => {
+        .catch((e) => {
 
           if(req.file){
             if(sauceCreated.imageUrl !== "noimage"){
@@ -100,7 +99,7 @@ exports.getAllSauces = (req,res) =>{
               })
             }
           }
-          res.status(500).json({message: "Connexion à MongoDB échouée !"})
+          res.status(500).json({message: "Connexion à MongoDB échouée !", error: e})
       });
   };
 
@@ -182,7 +181,7 @@ exports.getAllSauces = (req,res) =>{
       })
       .catch(error => res.status(404).json({ error }));
     })
-    .catch(() => {
+    .catch((e) => {
       if(req.file){
         if(sauceModified.imageUrl !== "noimage"){
           fs.unlink('../back/images/' + sauceModified.imageUrl.split('/images/')[1], (err) => {
@@ -192,7 +191,7 @@ exports.getAllSauces = (req,res) =>{
           })
         }
       }
-      res.status(500).json({message: "Connexion à MongoDB échouée !"})
+      res.status(500).json({message: "Connexion à MongoDB échouée !", error: e})
     });
   };
 
@@ -226,7 +225,7 @@ exports.getAllSauces = (req,res) =>{
           return res.status(404).json({ message: "Objet non trouvé  !" });
         });
     })
-    .catch(() => res.status(500).json({message: "Connexion à MongoDB échouée !"}));
+    .catch((e) => res.status(500).json({message: "Connexion à MongoDB échouée !", error: e}));
   };
 
   exports.postLike = (req,res) => {
@@ -312,7 +311,7 @@ exports.getAllSauces = (req,res) =>{
 
         Sauce.updateOne({ _id: req.params.id }, { ...sauceLiked, _id: req.params.id })
           .then(() => res.status(200).json({ message: 'Like ajouté !'}))
-          .catch(() => res.status(400).json({ message: 'Erreur lors de l\'ajout du like !'}));
+          .catch((e) => res.status(400).json({ message: 'Erreur lors de l\'ajout du like !', error: e}));
         })
         .catch(() => res.status(404).json({ message: "Objet non trouvé  !" }));
       }
@@ -320,5 +319,5 @@ exports.getAllSauces = (req,res) =>{
         return res.status(400).send(new Error('Bad request!'));
       }
     })
-    .catch(() => res.status(500).json({message: "Connexion à MongoDB échouée !"}));
+    .catch((e) => res.status(500).json({message: "Connexion à MongoDB échouée !", error: e}));
   };

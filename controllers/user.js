@@ -4,8 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 getAuth = () =>{
-  const AUTH = "mongodb+srv://"+String(process.env.DB_USERNAME)+":"+String(process.env.DB_USERPASS)+"@"+String(process.env.DB_CLUSTERNAME)+".ukoxa.mongodb.net/"+String(process.env.DB_NAME)+"?retryWrites=true&w=majority";
-  return AUTH;
+  return "mongodb+srv://"+String(process.env.DB_USERNAME)+":"+String(process.env.DB_USERPASS)+"@"+String(process.env.DB_CLUSTERNAME)+".ukoxa.mongodb.net/"+String(process.env.DB_NAME)+"?retryWrites=true&w=majority";
 }
 
 exports.login = (req,res) =>{
@@ -27,14 +26,14 @@ exports.login = (req,res) =>{
             userId: user._id,
             token: jwt.sign(
               { userId: user._id },
-              'HyperSecretiveTokenNoOneKnowsAbout',
+              process.env.JSON_TOKEN,
               { expiresIn: '24h' }
             )    
           });
         })
-        .catch(() => res.status(404).json({ error: 'Utilisateur non trouvé !' }));
+        .catch((e) => res.status(404).json({ message: 'Utilisateur non trouvé !', error: e}));
     })
-}).catch(() => res.status(500).json({message: "Connexion à MongoDB échouée !"}));
+}).catch((e) => res.status(500).json({message: "Connexion à MongoDB échouée !", error: e}));
   
 };
 
@@ -54,14 +53,13 @@ exports.login = (req,res) =>{
             email: req.body.email,
             password: hash
         });
-        console.log(hash);
         user.save()
         .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
-        .catch(() => res.status(400).json({ message: 'Erreur lors de la création de l\'utilisateur !' }));
+        .catch((e) => res.status(400).json({ message: 'Erreur lors de la création de l\'utilisateur !', error: e}));
         })
-        .catch(() => res.status(500).json({ message: 'Erreur lors du hashage du mot de passe !' }));
+        .catch((e) => res.status(500).json({ message: 'Erreur lors du hashage du mot de passe !', error: e}));
         })
-    .catch(() => res.status(500).json({message: "Connexion à MongoDB échouée !"}));
+    .catch((e) => res.status(500).json({message: "Connexion à MongoDB échouée !", error: e}));
 };
 
 exports.delete = (req, res) =>{
@@ -74,5 +72,5 @@ exports.delete = (req, res) =>{
       .then(() => res.status(200).json({ message: 'Utilisateur supprimé !'}))
       .catch(error => res.status(400).json({ error }));
   })
-  .catch(() => res.status(500).json({message: "Connexion à MongoDB échouée !"}));
+  .catch((e) => res.status(500).json({message: "Connexion à MongoDB échouée !", error: e}));
 };
