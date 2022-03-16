@@ -6,12 +6,14 @@ const sauceRoutes = require('./routes/sauce')
 const userRoutes = require('./routes/user')
 const cors = require ('cors');
 const dotenv = require('dotenv');
+const helmet = require('helmet')
+
 //Set up environment variables access
 dotenv.config({path:".env"});
 
 const apiRequestLimiter = expressRateLimit({
-  windowMs: 2 * 1000, // 2 seconds
-  max: 1000, // 1000 IPs
+  windowMs: 15 * 60 * 1000, //request window : 15 minutes
+  max: 1000, //max requests that can be sent by each ip address in the request window (1000 requests in 15 minutes)
   message: "Too much requests !"
 });
 //Limit requests
@@ -28,6 +30,8 @@ app.use(cors({
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     next();
   });
+//Set up helmet for security headers
+  app.use(helmet());
 
   app.use(express.json());
 //Set up routes
