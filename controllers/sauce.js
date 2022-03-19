@@ -52,7 +52,7 @@ exports.getAllSauces = (req,res) =>{
 
     let sauceCreated = JSON.parse(req.body.sauce);
 
-    if(sauceCreated.userId !== res.locals.userId){
+    if(sauceCreated.userId !== res.locals.userId || sauceCreated.likes || sauceCreated.dislikes || sauceCreated.usersDisliked || sauceCreated.usersLiked){
       return res.status(401).send(new Error('Unauthorized !'));
     }
 
@@ -68,19 +68,18 @@ exports.getAllSauces = (req,res) =>{
     { useNewUrlParser: true,
     useUnifiedTopology: true })
         .then(() => {
-
+          console.log(sauceCreated);
           const sauce = new Sauce({ ...sauceCreated });
-
           sauce.save().then(() => {
             res.status(201).json({message: sauceCreated});
           })
           .catch((e) => {
-
+            console.log(test);  
             if(req.file){
               if(sauceCreated.imageUrl !== "noimage"){
                 fs.unlink('../back/images/' + sauceCreated.imageUrl.split('/images/')[1], (err) => {
                   if (err) {
-                    console.error(err)
+                    console.error(err);
                   }
                 })
               }
@@ -134,7 +133,10 @@ exports.getAllSauces = (req,res) =>{
       "heat":<Number>}*/
       
       sauceModified = JSON.parse(req.body.sauce);
-      sauceModified.userId = req.body.userId;
+      sauceModified.userId = res.locals.userId;
+      if(sauceModified.likes || sauceModified.dislikes || sauceModified.usersDisliked || sauceModified.usersLiked){
+        return res.status(401).send(new Error('Unauthorized !'));
+      }
     }
     else{
       sauceModified = { ...req.body};
@@ -229,7 +231,10 @@ exports.getAllSauces = (req,res) =>{
   };
 
   exports.postLike = (req,res) => {
-    if(!req.body.like){
+    let test = Number(req.body.like);
+    if(test.isNaN){
+      console.log(!(!req.body.like));
+      console.log("like : " +req.body.like);
       return res.status(400).send(new Error('Bad request!'));
     }
     mongoose.connect(getAuth(),

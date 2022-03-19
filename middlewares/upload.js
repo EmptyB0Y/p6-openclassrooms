@@ -7,8 +7,8 @@ const MIME_TYPES = {
   'image/png': 'png'
 };
 try {
-  if (!fs.existsSync("../images")) {
-    fs.mkdirSync("../images");
+  if (!fs.existsSync("./images")) {
+    fs.mkdirSync("./images");
   } 
 } catch(e) {
   console.log("An error occurred.")
